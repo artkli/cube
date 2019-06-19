@@ -1,8 +1,10 @@
-# cube
+# Instalacja MQTT Mosquitto + ZigBee + CC2531 + Aqara cube = sterowanie TV
+
+Film:
 
 https://youtu.be/QkiwCO7urYQ
 
-# Instalacja MQTT Mosquitto + ZigBee + CC2531 + Aqara cube = sterowanie TV
+
 
 Po podłączeniu CC2531 zainstalować MQTT i ZigBee bridge, bazując na instrukcji ze stron: https://diyprojects.io/test-zigbee2mqtt-project-hack-xiaomo-aqara-smart-home-gateway-assembly-demo-nodered-3d-printed-case/, https://gadget-freakz.com/diy-zigbee-gateway/:
 
@@ -33,6 +35,8 @@ uruchom jako serwis:
 ```sh
 sudo vi /etc/systemd/system/zigbee2mqtt.service
 ``` 
+
+```
     [Unit]
     Description=zigbee2mqtt
     After=network.target
@@ -45,6 +49,7 @@ sudo vi /etc/systemd/system/zigbee2mqtt.service
     User=pi
     [Install]
     WantedBy=multi-user.target
+```
 
 ```sh
 sudo systemctl enable zigbee2mqtt.service
@@ -72,6 +77,7 @@ uruchom program w Pythonie bazujący na bibliotece paho.mqtt.client jako serwis:
 sudo vi /lib/systemd/system/cube.service
 ```
 
+```
     [Unit]
     Description=Aqara Magic Cube TV remote control Service
     After=multi-user.target
@@ -80,6 +86,7 @@ sudo vi /lib/systemd/system/cube.service
     ExecStart=/usr/bin/python /home/pi/zigbee/cube.py
     [Install]
     WantedBy=multi-user.target
+```
 
 ```sh
 sudo chmod 644 /lib/systemd/system/cube.service
