@@ -8,11 +8,11 @@ second_slide = False
 
 
 def lirc_send(key):
-#    print("IR send: " + key)	
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.connect("/var/run/lirc/lircd")
     s.sendall("SEND_ONCE tv " + key + "\n")
     s.close()
+#    print("IR send: " + key)	
 
 
 def on_message(mqttc, obj, msg):
