@@ -8,10 +8,10 @@ second_slide = False
 
 
 def lirc_send(key):
+#    print("IR send: " + key)	
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.connect("/var/run/lirc/lircd")
     s.sendall("SEND_ONCE tv " + key + "\n")
-#    print("IR send: " + key)	
     s.close()
 
 
@@ -23,7 +23,6 @@ def on_message(mqttc, obj, msg):
 
     if j["action"] == "shake":
         cube_on = not cube_on
-#    print("action: " + j["action"] + " ON: " + repr(cube_on))
 
     if cube_on:
         if not second_slide and j["action"] == "slide":
@@ -42,6 +41,8 @@ def on_message(mqttc, obj, msg):
             elif j["action"] == "slide":
                 lirc_send("KEY_CHANNELDOWN")
             second_slide = False
+
+#    print("action: " + j["action"] + " ON: " + repr(cube_on))
 
 
 mqttc = mqtt.Client()
