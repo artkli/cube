@@ -91,4 +91,5 @@ sudo vi /lib/systemd/system/cube.service
 ```sh
 sudo chmod 644 /lib/systemd/system/cube.service
 sudo systemctl enable cube.service
+sudo systemctl start cube.service
 ```
