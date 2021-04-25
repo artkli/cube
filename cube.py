@@ -7,13 +7,11 @@ cube_on = False
 second_slide = False
 
 
-def lirc_send(key):
+def lirc_send(dev, key):
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.connect("/var/run/lirc/lircd")
-    s.sendall("SEND_ONCE tv " + key + "\n")
+    s.sendall("SEND_ONCE " + dev + " " + key + "\n")
     s.close()
-#    print("IR send: " + key)	
-
 
 def on_message(mqttc, obj, msg):
     global cube_on
@@ -29,17 +27,18 @@ def on_message(mqttc, obj, msg):
             second_slide = True
         else:
             if j["action"] == "tap":
-                lirc_send("KEY_POWER")
+                lirc_send("tv", "KEY_POWER")
+                lirc_send("CANAL", "POWER")
             elif j["action"] == "rotate_right" and j["angle"] > 35.:
-                lirc_send("KEY_VOLUMEUP")
+                lirc_send("tv", "KEY_VOLUMEUP")
             elif j["action"] == "rotate_left" and j["angle"] < -35.:
-                lirc_send("KEY_VOLUMEDOWN")
+                lirc_send("tv", "KEY_VOLUMEDOWN")
             elif j["action"] == "flip180":
-                lirc_send("KEY_1")
+                lirc_send("tv", "KEY_1")
             elif j["action"] == "flip90":
-                lirc_send("KEY_CHANNELUP")
+                lirc_send("tv", "KEY_CHANNELUP")
             elif j["action"] == "slide":
-                lirc_send("KEY_CHANNELDOWN")
+                lirc_send("tv", "KEY_CHANNELDOWN")
             second_slide = False
 
 #    print("action: " + j["action"] + " ON: " + repr(cube_on))
