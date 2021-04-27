@@ -27,8 +27,8 @@ def on_message(mqttc, obj, msg):
             second_slide = True
         else:
             if j["action"] == "tap":
-                lirc_send("tv", "KEY_POWER")
                 lirc_send("CANAL", "POWER")
+                lirc_send("tv", "KEY_POWER")
             elif j["action"] == "rotate_right" and j["angle"] > 35.:
                 lirc_send("tv", "KEY_VOLUMEUP")
             elif j["action"] == "rotate_left" and j["angle"] < -35.:
