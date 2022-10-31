@@ -1,15 +1,19 @@
 import os
 import sys
+import time
 import telnetlib
 import json
 import requests
 import paho.mqtt.client as mqtt
 import eiscp
-
+import logging
+from systemd import journal
 from samsungtvws import SamsungTVWS
-
 from h import TVHOST, TVPORT, VSXHOST, BDHOST, BDPORT, DHOST
 
+
+FILE_LOCK = "/run/lock/nfc.lock"
+LT = 0.1
 
 PLAY  = b"/A181AF39/RU\n\r"
 PAUSE = b"/A181AF3A/RU\n\r"
@@ -33,9 +37,15 @@ pause_on = False
 last_volume = 80
 sys.path.append('../')
 token_file = os.path.dirname(os.path.realpath(__file__)) + '/tv-token'
-tvr = SamsungTVWS(host=TVHOST, port=TVPORT, token_file=token_file)
-vsxr = eiscp.eISCP(VSXHOST)
 dr = 'http://' + DHOST + ':8080/control/rcu'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(fmt="%(asctime)s %(levelname)s - %(message)s", datefmt="%Y.%m.%d %H:%M:%S")
+handler = logging.StreamHandler(stream=sys.stdout)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 def bd_send(command):
     bdr = telnetlib.Telnet(BDHOST, BDPORT)
@@ -129,7 +139,7 @@ def radio_mute():
         set_volume(0)
         pause_on = True
 
-def tap(src):
+def shake(src):
     if src == SAT:
         tv_pause()
     if src == FM:
@@ -168,22 +178,34 @@ def slide(src):
 def on_message(mqttc, obj, msg):
     global cube_on
     global second_slide
-	
+    global tvr
+    global vsxr
+    
     j = json.loads(str(msg.payload.decode("utf-8", "ignore")))
 
-    if j["action"] == "shake":
+    if j["action"] == "tap":
         cube_on = not cube_on
 
     if cube_on:
+        mustend = time.time() + 30
+        while time.time() < mustend:
+            if not os.path.exists(FILE_LOCK):
+                break
+            time.sleep(LT)
+        open(FILE_LOCK, 'x')
+
+        tvr = SamsungTVWS(host=TVHOST, port=TVPORT, token_file=token_file)
+        vsxr = eiscp.eISCP(VSXHOST)
+
         src = get_source()
         if not second_slide and j["action"] == "slide":
             second_slide = True
         else:
-            if j["action"] == "tap":
-                tap(src)
-            elif j["action"] == "rotate_right" and j["angle"] > 3.:
+            if j["action"] == "shake":
+                shake(src)
+            elif j["action"] == "rotate_right" and j["action_angle"] > 30.:
                 rotate_right()
-            elif j["action"] == "rotate_left" and j["angle"] < -3.:
+            elif j["action"] == "rotate_left" and j["action_angle"] < -30.:
                 rotate_left()
             elif j["action"] == "flip180":
                 flip180(src)
@@ -193,8 +215,17 @@ def on_message(mqttc, obj, msg):
                 slide(src)
             second_slide = False
 
-#    print("action: " + j["action"] + " ON: " + repr(cube_on))
+        if os.path.exists(FILE_LOCK):
+            os.remove(FILE_LOCK)
+        
+        tvr.close()
+        vsxr.disconnect()
 
+    output = "ON: " + repr(cube_on) + " action: " + j["action"]
+    if j["action"] == "rotate_right" or j["action"] == "rotate_left":
+        output += " angle: " + str(j["action_angle"])
+    #print(output)
+    logger.info(output)
 
 mqttc = mqtt.Client()
 mqttc.on_message = on_message
