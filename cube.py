@@ -224,7 +224,6 @@ def on_message(mqttc, obj, msg):
     output = "ON: " + repr(cube_on) + " action: " + j["action"]
     if j["action"] == "rotate_right" or j["action"] == "rotate_left":
         output += " angle: " + str(j["action_angle"])
-    #print(output)
     logger.info(output)
 
 mqttc = mqtt.Client()
