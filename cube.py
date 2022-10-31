@@ -13,7 +13,7 @@ from h import TVHOST, TVPORT, VSXHOST, BDHOST, BDPORT, DHOST
 
 
 FILE_LOCK = "/run/lock/nfc.lock"
-LT = 0.1
+SLT = 0.1
 
 PLAY  = b"/A181AF39/RU\n\r"
 PAUSE = b"/A181AF3A/RU\n\r"
@@ -126,7 +126,7 @@ def radio_channel_down():
     vsxr.command("preset down")
 
 def radio_channel_1():
-    vsxr.command("preset 1")
+    vsxr.command("preset 6")
 
 def radio_mute():
     global pause_on
@@ -191,7 +191,7 @@ def on_message(mqttc, obj, msg):
         while time.time() < mustend:
             if not os.path.exists(FILE_LOCK):
                 break
-            time.sleep(LT)
+            time.sleep(SLT)
         open(FILE_LOCK, 'x')
 
         tvr = SamsungTVWS(host=TVHOST, port=TVPORT, token_file=token_file)
