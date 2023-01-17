@@ -14,6 +14,7 @@ from h import TVHOST, TVPORT, VSXHOST, BDHOST, BDPORT, DHOST
 
 FILE_LOCK = "/run/lock/nfc.lock"
 SLT = 0.1
+SFL = 30
 
 PLAY  = b"/A181AF39/RU\n\r"
 PAUSE = b"/A181AF3A/RU\n\r"
@@ -187,7 +188,7 @@ def on_message(mqttc, obj, msg):
         cube_on = not cube_on
 
     if cube_on:
-        mustend = time.time() + 30
+        mustend = time.time() + SFL
         while time.time() < mustend:
             if not os.path.exists(FILE_LOCK):
                 break
